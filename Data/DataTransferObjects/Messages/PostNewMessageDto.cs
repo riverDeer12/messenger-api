@@ -1,20 +1,17 @@
-﻿using MessengerAPI.Data.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MessengerAPI.Data.DataTransferObjects.Messages
 {
-    public class PostMessageDataDto
+    public class PostNewMessageDto
     {
+        public string UserId { get; set; }
+        public List<string> ReceiverIds { get; set; }
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public Guid ChatId { get; set; }
-        public Guid UserId { get; set; }
 
-        public PostMessageDataDto()
+        public PostNewMessageDto()
         {
             CreatedAt = DateTime.Now;
             UpdatedAt = DateTime.Now;

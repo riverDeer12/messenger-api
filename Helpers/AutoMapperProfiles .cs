@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MessengerAPI.Data.DataTransferObjects.ApplicationUsers;
+using MessengerAPI.Data.DataTransferObjects.Chats;
 using MessengerAPI.Data.Models;
 
 namespace MessengerAPI.Helpers
@@ -8,8 +9,12 @@ namespace MessengerAPI.Helpers
     {
         public AutoMapperProfiles()
         {
+            //-- application user profiles --//
             CreateMap<RegistrationDto, ApplicationUser>();
             CreateMap<ApplicationUser, UserDetailsDto>();
+
+            //-- chat profiles --//
+            CreateMap<NewChatDto, Chat>();
         }
         
     }

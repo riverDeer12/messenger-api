@@ -4,14 +4,16 @@ using MessengerAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace MessengerAPI.Migrations
 {
     [DbContext(typeof(Model))]
-    partial class ModelModelSnapshot : ModelSnapshot
+    [Migration("20200621115448_smallChanges00")]
+    partial class smallChanges00
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -86,6 +88,12 @@ namespace MessengerAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("ApplicationUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ApplicationUserId1")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<bool>("Archived")
                         .HasColumnType("bit");
 
@@ -101,14 +109,11 @@ namespace MessengerAPI.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("MessageId");
 
-                    b.HasIndex("ChatId");
+                    b.HasIndex("ApplicationUserId1");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("ChatId");
 
                     b.ToTable("Messages");
                 });
@@ -362,15 +367,15 @@ namespace MessengerAPI.Migrations
 
             modelBuilder.Entity("MessengerAPI.Data.Models.Message", b =>
                 {
+                    b.HasOne("MessengerAPI.Data.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany("Messages")
+                        .HasForeignKey("ApplicationUserId1");
+
                     b.HasOne("MessengerAPI.Data.Models.Chat", "Chat")
                         .WithMany("Messages")
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("MessengerAPI.Data.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany("Messages")
-                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

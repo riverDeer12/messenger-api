@@ -37,6 +37,7 @@ namespace MessengerAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("Register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register(RegistrationDto registrationData)
         {
             var response = await _usersManager.RegisterUser(registrationData);
@@ -70,10 +71,16 @@ namespace MessengerAPI.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("GetUserDetails")]
-        [Authorize(Roles = Roles.User)]
-        public string GetUserDetails()
+        [Authorize]
+        public async Task<IActionResult> GetUserDetails()
         {
-            return "something";
+            var userId = User.FindFirst("UserId")?.Value;
+
+            var userDetails = await _usersManager.GetUserDetails(userId);
+
+            if (userDetails == null) return BadRequest();
+
+            return Ok(userDetails);
         }
 
     }

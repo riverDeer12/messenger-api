@@ -2,6 +2,7 @@
 using MessengerAPI.Constants;
 using MessengerAPI.Data;
 using MessengerAPI.Data.DataTransferObjects.ApplicationUsers;
+using MessengerAPI.Data.DataTransferObjects.Messages;
 using MessengerAPI.Data.Models;
 using MessengerAPI.Helpers;
 using MessengerAPI.Services.HelperClasses;
@@ -110,9 +111,9 @@ namespace MessengerAPI.Services
 
         /// <summary>
         /// Get user details by
-        /// user id.
+        /// claims principal.
         /// </summary>
-        /// <param name="userId"></param>
+        /// <param name="user"></param>
         /// <returns></returns>
         public async Task<UserDetailsDto> GetUserDetails(string userId)
         {
@@ -121,6 +122,24 @@ namespace MessengerAPI.Services
             var userDetails = _mapper.Map<UserDetailsDto>(user);
 
             return userDetails;
+        }
+
+
+        /// <summary>
+        /// Find user by sent id.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>
+        /// User object if successfully found.
+        /// If not returns null.
+        /// </returns>
+        public async Task<ApplicationUser> FindUserById(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null) return null;
+
+            return user;
         }
     }
 }

@@ -298,9 +298,6 @@ E:\_projects\MessengerAPI\bin\Debug\netcoreapp3.1\runtimes\win\lib\netstandard2.
 E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.csprojAssemblyReference.cache
 E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.AssemblyInfoInputs.cache
 E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.AssemblyInfo.cs
-E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.csproj.CoreCompileInputs.cache
-E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.MvcApplicationPartsAssemblyInfo.cs
-E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.MvcApplicationPartsAssemblyInfo.cache
 E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.RazorTargetAssemblyInfo.cache
 E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.csproj.CopyComplete
 E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\staticwebassets\MessengerAPI.StaticWebAssets.Manifest.cache
@@ -308,3 +305,7 @@ E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\staticwebassets\MessengerAPI.S
 E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.dll
 E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.pdb
 E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.genruntimeconfig.cache
+E:\_projects\MessengerAPI\bin\Debug\netcoreapp3.1\System.Net.WebSockets.WebSocketProtocol.dll
+E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.csproj.CoreCompileInputs.cache
+E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.MvcApplicationPartsAssemblyInfo.cs
+E:\_projects\MessengerAPI\obj\Debug\netcoreapp3.1\MessengerAPI.MvcApplicationPartsAssemblyInfo.cache

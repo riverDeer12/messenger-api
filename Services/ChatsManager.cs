@@ -1,7 +1,13 @@
 ﻿using AutoMapper;
 using MessengerAPI.Data;
+using MessengerAPI.Data.DataTransferObjects.Chats;
+using MessengerAPI.Data.DataTransferObjects.Messages;
 using MessengerAPI.Data.Models;
+using MessengerAPI.Helpers;
+using MessengerAPI.Services.HelperClasses;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +19,17 @@ namespace MessengerAPI.Services
     {
         private readonly Model _db;
         private readonly IMapper _mapper;
+        private readonly ApplicationUsersManager _usersManager;
+        private readonly LogsManager _logsManager;
 
-        public ChatsManager(Model context, IMapper mapper)
+        public ChatsManager(Model context, IMapper mapper, 
+            UserManager<ApplicationUser> userManager, 
+            IOptions<ApplicationSettings> appSettings)
         {
             _db = context;
             _mapper = mapper;
+            _usersManager = new ApplicationUsersManager(context, mapper, userManager, appSettings);
+            _logsManager = new LogsManager(context);
         }
 
         /// <summary>
@@ -26,7 +38,7 @@ namespace MessengerAPI.Services
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        private async Task<ICollection<Chat>> GetChatsForUser(string userId)
+        public async Task<ICollection<Chat>> GetUserChatsById(string userId)
         {
             var chats = await GetActiveChats(userId);
 
@@ -79,6 +91,79 @@ namespace MessengerAPI.Services
             return await _db.UserChats
                 .Where(x => x.UserId == userId && x.Archived == false)
                 .ToListAsync();
+        }
+
+        /// <summary>
+        /// Process new chat.
+        /// </summary>
+        /// <param name="newMessageData"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public async Task<ChatResponse> ProcessNewChat(PostNewMessageDto newMessageData, Message message)
+        {
+            var chatUsers = await GetChatUsers(newMessageData);
+
+            var newChatData = new NewChatDto(chatUsers, message);
+
+            var chat = _mapper.Map<Chat>(newChatData);
+
+            var success = await SaveChat(chat);
+
+            if (!success) return ChatResponse.Unsuccessful("Error saving chat");
+
+            return ChatResponse.Successfull();
+        }
+
+        /// <summary>
+        /// Make list of chat users
+        /// for new chat. Contains
+        /// all receivers and chat owner.
+        /// </summary>
+        /// <param name="messageData"></param>
+        /// <returns></returns>
+        public async Task<List<ApplicationUser>> GetChatUsers(PostNewMessageDto messageData)
+        {
+            var chatUsers = new List<ApplicationUser>();
+
+            foreach(var receiverId in messageData.ReceiverIds)
+            {
+                var receiver = await _usersManager.FindUserById(receiverId);
+
+                if (receiver == null) continue;
+
+                chatUsers.Add(receiver);
+            }
+
+            var chatOwner = await _usersManager.FindUserById(messageData.UserId);
+
+            chatUsers.Add(chatOwner);
+
+            return chatUsers;
+        }
+
+        /// <summary>
+        /// Save new chat to database.
+        /// </summary>
+        /// <param name="messageData"></param>
+        /// <returns>
+        /// True if successfully saved.
+        /// </returns>
+        private async Task<bool> SaveChat(Chat chat)
+        {
+            _db.Chats.Add(chat);
+
+            try
+            {
+                var result = await _db.SaveChangesAsync();
+
+                if (result == 1) return true;
+            }
+            catch (Exception ex)
+            {
+                _logsManager.SaveLog(chat, ex.Message);
+            }
+
+            return false;
         }
     }
 }

@@ -14,6 +14,7 @@ using MessengerAPI.Data.Models;
 using Microsoft.Extensions.Hosting;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using MessengerAPI.Hubs;
 
 namespace MessengerAPI
 {
@@ -73,6 +74,8 @@ namespace MessengerAPI
 
             services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
 
+            services.AddSignalR();
+            
             services.AddControllers();
         }
 
@@ -97,6 +100,7 @@ namespace MessengerAPI
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ChatHub>("/chat");
             });
         }
     }

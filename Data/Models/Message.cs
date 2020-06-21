@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MessengerAPI.Data.Models
 {
@@ -13,7 +14,7 @@ namespace MessengerAPI.Data.Models
         public DateTime UpdatedAt { get; set; }
         public Guid ChatId { get; set; }
         public virtual Chat Chat { get; set; }
-        public Guid UserId { get; set; }
+        [ForeignKey("UserId")]
         public virtual ApplicationUser ApplicationUser { get; set; }
     }
 }
