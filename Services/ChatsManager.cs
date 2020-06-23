@@ -97,21 +97,48 @@ namespace MessengerAPI.Services
         /// Process new chat.
         /// </summary>
         /// <param name="newMessageData"></param>
-        /// <param name="message"></param>
         /// <returns></returns>
-        public async Task<ChatResponse> ProcessNewChat(PostNewMessageDto newMessageData, Message message)
+        public async Task<ChatResponse> ProcessNewChat(PostNewMessageDto newMessageData)
         {
-            var chatUsers = await GetChatUsers(newMessageData);
+            var users = await GetChatUsers(newMessageData);
 
-            var newChatData = new NewChatDto(chatUsers, message);
+            var newChatData = new NewChatDto(users);
 
             var chat = _mapper.Map<Chat>(newChatData);
 
+            chat.ApplicationUserChats = SetChatUsers(chat, users);
+
             var success = await SaveChat(chat);
 
-            if (!success) return ChatResponse.Unsuccessful("Error saving chat");
+            if (!success) return ChatResponse.Unsuccessful("Error saving chat.");
 
-            return ChatResponse.Successfull();
+            return ChatResponse.Successfull(chat);
+        }
+
+        /// <summary>
+        /// Helper method for
+        /// assigning all users to
+        /// newly created chat.
+        /// </summary>
+        /// <param name="chat"></param>
+        /// <param name="users"></param>
+        /// <returns></returns>
+        private ICollection<ApplicationUserChat> SetChatUsers(Chat chat, List<ApplicationUser> users)
+        {
+            var chatUsers = new List<ApplicationUserChat>();
+
+            foreach(var user in users)
+            {
+                var newChatUser = new ApplicationUserChat
+                {
+                    ApplicationUser = user,
+                    Chat = chat
+                };
+
+                chatUsers.Add(newChatUser);
+            }
+
+            return chatUsers;
         }
 
         /// <summary>

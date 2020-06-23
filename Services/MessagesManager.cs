@@ -33,7 +33,6 @@ namespace MessengerAPI.Services
             _chatsManager = new ChatsManager(context, mapper, userManager, appSettings);
         }
 
-
         /// <summary>
         /// Get messages by chat id.
         /// </summary>
@@ -46,6 +45,17 @@ namespace MessengerAPI.Services
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Get all messages for user.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<List<Message>> GetUserMessages(string userId)
+        {
+            return await _db.Messages
+                .Where(x => x.ApplicationUser.Id == userId)
+                .ToListAsync();
+        }
 
         /// <summary>
         /// Find message by message id.
@@ -84,18 +94,23 @@ namespace MessengerAPI.Services
         /// 2. Send message.
         /// </summary>
         /// <param name="messageData"></param>
+        /// <param name="chatOwner"></param>
         /// <returns></returns>
-        public async Task<MessageResponse> ProcessNewMessage(PostNewMessageDto messageData)
-        {                
+        public async Task<MessageResponse> ProcessNewMessage(PostNewMessageDto messageData, ApplicationUser chatOwner)
+        {
+            var chatResponse = await _chatsManager.ProcessNewChat(messageData);
+
+            if (!chatResponse.Success) return MessageResponse.Unsuccessful("Error creating chat.");
+
             var message = _mapper.Map<Message>(messageData);
+
+            message.Chat = chatResponse.Chat;
+
+            message.ApplicationUser = chatOwner;
 
             var messageSaved = await SaveMessage(message);
 
             if (!messageSaved) return MessageResponse.Unsuccessful("Error in saving message.");
-
-            var chatResponse = await _chatsManager.ProcessNewChat(messageData, message);
-
-            if(!chatResponse.Success) return MessageResponse.Unsuccessful("Error creating chat.");
 
             return MessageResponse.Successfull(message);
         }

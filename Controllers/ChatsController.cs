@@ -17,8 +17,8 @@ namespace MessengerAPI.Controllers
     [Authorize]
     public class ChatsController : ControllerBase
     {
-        private IHubContext<ChatHub> _hub;
-        private ChatsManager _chatsManager;
+        private readonly IHubContext<ChatHub> _hub;
+        private readonly ChatsManager _chatsManager;
 
         public ChatsController(Model context, 
             IMapper mapper, 
@@ -28,23 +28,6 @@ namespace MessengerAPI.Controllers
         {
             _hub = hub;
             _chatsManager = new ChatsManager(context, mapper, userManager, appSettings);
-        }
-
-        /// <summary>
-        /// Get chats for 
-        /// logged user.
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet]
-        public IActionResult GetChatMessages()
-        {
-            var userId = User.FindFirst("UserId")?.Value;
-
-            if (string.IsNullOrEmpty(userId)) return BadRequest();
-
-            _hub.Clients.All.SendAsync("chats", _chatsManager.GetUserChatsById(userId));
-
-            return Ok(new { Message = "Messages delivered." });
         }
     }
 }

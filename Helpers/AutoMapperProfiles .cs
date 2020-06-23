@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MessengerAPI.Data.DataTransferObjects.ApplicationUsers;
 using MessengerAPI.Data.DataTransferObjects.Chats;
+using MessengerAPI.Data.DataTransferObjects.Messages;
 using MessengerAPI.Data.Models;
 
 namespace MessengerAPI.Helpers
@@ -15,6 +16,9 @@ namespace MessengerAPI.Helpers
 
             //-- chat profiles --//
             CreateMap<NewChatDto, Chat>();
+
+            //-- mesage profiles --//
+            CreateMap<PostNewMessageDto, Message>();
         }
         
     }

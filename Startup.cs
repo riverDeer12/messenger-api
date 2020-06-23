@@ -74,8 +74,11 @@ namespace MessengerAPI
 
             services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
 
-            services.AddSignalR();
-            
+            services.AddSignalR(o =>
+            {
+                o.EnableDetailedErrors = true;
+            });
+
             services.AddControllers();
         }
 
@@ -91,7 +94,11 @@ namespace MessengerAPI
 
             app.UseRouting();
 
-            app.UseCors(builder => builder.WithOrigins(Configuration["ApplicationSettings:ClientUrl"]).AllowAnyHeader().AllowAnyMethod());
+            app.UseCors(builder => builder
+                .WithOrigins(Configuration["ApplicationSettings:ClientUrl"])
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials());
 
             app.UseAuthentication();
 
@@ -101,6 +108,7 @@ namespace MessengerAPI
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<ChatHub>("/chat");
+                endpoints.MapHub<MessageHub>("/message");
             });
         }
     }
