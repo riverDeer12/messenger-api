@@ -181,16 +181,16 @@ namespace MessengerAPI.Services
 
             try
             {
-                var result = await _db.SaveChangesAsync();
-
-                if (result == 1) return true;
+                await _db.SaveChangesAsync();
             }
             catch (Exception ex)
             {
                 _logsManager.SaveLog(chat, ex.Message);
+
+                return false;
             }
 
-            return false;
+            return true;
         }
     }
 }

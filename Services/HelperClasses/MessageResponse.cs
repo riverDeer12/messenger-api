@@ -1,4 +1,5 @@
-﻿using MessengerAPI.Data.Models;
+﻿using MessengerAPI.Data.DataTransferObjects.Messages;
+using MessengerAPI.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace MessengerAPI.Services.HelperClasses
     {
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
-        public Message Message { get; set; }
+        public MessageDetailsDto  Message { get; set; }
 
         internal static MessageResponse Unsuccessful(string messages)
         {
@@ -21,7 +22,7 @@ namespace MessengerAPI.Services.HelperClasses
             };
         }
 
-        internal static MessageResponse Successfull(Message message)
+        internal static MessageResponse Successfull(MessageDetailsDto message)
         {
             return new MessageResponse()
             {

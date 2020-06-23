@@ -19,6 +19,7 @@ namespace MessengerAPI.Helpers
 
             //-- mesage profiles --//
             CreateMap<PostNewMessageDto, Message>();
+            CreateMap<Message, MessageDetailsDto>();
         }
         
     }

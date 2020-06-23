@@ -79,7 +79,7 @@ namespace MessengerAPI.Controllers
 
             if (!response.Success) return BadRequest(response.ErrorMessage);
 
-            await _hub.Clients.All.SendAsync("sendmessage", response.Message);
+            await _hub.Clients.All.SendAsync("SendMessage", response.Message);
 
             return Ok();
         }
@@ -102,7 +102,7 @@ namespace MessengerAPI.Controllers
 
             if (!response.Success) return BadRequest(response.ErrorMessage);
 
-            await _hub.Clients.All.SendAsync("receivemessages", "Govno");
+            await _hub.Clients.All.SendAsync("MessageReceived", response.Message);
 
             return Ok();
         }

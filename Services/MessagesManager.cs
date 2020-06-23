@@ -85,7 +85,9 @@ namespace MessengerAPI.Services
 
             if (!messageSaved) return MessageResponse.Unsuccessful("Error in saving message.");
 
-            return MessageResponse.Successfull(message);
+            var messageDetailsDto = _mapper.Map<MessageDetailsDto>(message);
+
+            return MessageResponse.Successfull(messageDetailsDto);
         }
 
         /// <summary>
@@ -112,7 +114,9 @@ namespace MessengerAPI.Services
 
             if (!messageSaved) return MessageResponse.Unsuccessful("Error in saving message.");
 
-            return MessageResponse.Successfull(message);
+            var messageDetailsDto = _mapper.Map<MessageDetailsDto>(message);
+
+            return MessageResponse.Successfull(messageDetailsDto);
         }
 
         /// <summary>
@@ -128,16 +132,16 @@ namespace MessengerAPI.Services
 
             try
             {
-                var result = await _db.SaveChangesAsync();
-
-                if (result == 1) return true;
+                await _db.SaveChangesAsync();
             }
             catch (Exception ex)
             {
                 _logsManager.SaveLog(message, ex.Message);
+
+                return false;
             }
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -153,17 +157,16 @@ namespace MessengerAPI.Services
 
             try
             {
-                var result = await _db.SaveChangesAsync();
-
-                if (result == 1) return true;
+                await _db.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-
                 _logsManager.SaveLog(message, ex.Message);
+
+                return false;
             }
 
-            return false;
+            return true;
         }
 
     }
