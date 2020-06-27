@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using MessengerAPI.Data;
-using MessengerAPI.Data.DataTransferObjects.Chats;
 using MessengerAPI.Data.DataTransferObjects.Messages;
 using MessengerAPI.Data.Models;
 using MessengerAPI.Helpers;
+using MessengerAPI.Repositories;
 using MessengerAPI.Services.HelperClasses;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,58 +17,31 @@ namespace MessengerAPI.Services
 {
     public class MessagesManager
     {
-        private readonly Model _db;
         private readonly IMapper _mapper;
-        private readonly LogsManager _logsManager;
         private readonly ChatsManager _chatsManager;
+        private readonly MessagesRepository _repository;
 
         public MessagesManager(Model context, 
             IMapper mapper,
             UserManager<ApplicationUser> userManager, 
             IOptions<ApplicationSettings> appSettings)
         {
-            _db = context;
             _mapper = mapper;
-            _logsManager = new LogsManager(context);
+            _repository = new MessagesRepository(context);
             _chatsManager = new ChatsManager(context, mapper, userManager, appSettings);
         }
 
         /// <summary>
-        /// Get messages by chat id.
-        /// </summary>
-        /// <param name="chatId"></param>
-        /// <returns></returns>
-        public async Task<ICollection<Message>> GetMessagesByChatId(Guid chatId)
-        {
-            return await _db.Messages
-                .Where(x => x.Chat.ChatId == chatId)
-                .ToListAsync();
-        }
-
-        /// <summary>
-        /// Get all messages for user.
+        /// Get all messages
+        /// for logged user.
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<List<Message>> GetUserMessages(string userId)
+        public async Task<MessageResponse> GetUserMessages(string userId)
         {
-            return await _db.Messages
-                .Where(x => x.ApplicationUser.Id == userId)
-                .ToListAsync();
-        }
+            var userMessages = await _repository.GetMessagesByUserId(userId);
 
-        /// <summary>
-        /// Find message by message id.
-        /// </summary>
-        /// <param name="messageId"></param>
-        /// <returns></returns>
-        public async Task<Message> FindMessage(Guid messageId)
-        {
-            var message = await _db.Messages.FindAsync(messageId);
-
-            if (message == null) return null;
-
-            return message;
+            return MessageResponse.Successfull(userMessages);
         }
 
         /// <summary>
@@ -81,13 +54,20 @@ namespace MessengerAPI.Services
         {
             var message = _mapper.Map<Message>(messageData);
 
-            var messageSaved = await SaveMessage(message);
+            var messageSaved = await _repository.SaveMessage(message);
 
             if (!messageSaved) return MessageResponse.Unsuccessful("Error in saving message.");
 
             var messageDetailsDto = _mapper.Map<MessageDetailsDto>(message);
 
             return MessageResponse.Successfull(messageDetailsDto);
+        }
+
+        public async Task<MessageResponse> GetChatMessages(Guid chatId)
+        {
+            var messages = await _repository.GetMessagesByChatId(chatId);
+
+            return MessageResponse.Successfull(messages);
         }
 
         /// <summary>
@@ -110,7 +90,7 @@ namespace MessengerAPI.Services
 
             message.ApplicationUser = chatOwner;
 
-            var messageSaved = await SaveMessage(message);
+            var messageSaved = await _repository.SaveMessage(message);
 
             if (!messageSaved) return MessageResponse.Unsuccessful("Error in saving message.");
 
@@ -118,56 +98,5 @@ namespace MessengerAPI.Services
 
             return MessageResponse.Successfull(messageDetailsDto);
         }
-
-        /// <summary>
-        /// Saves message to database.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns>
-        /// True if message successfully saved.
-        /// </returns>
-        private async Task<bool> SaveMessage(Message message)
-        {
-            _db.Messages.Add(message);
-
-            try
-            {
-                await _db.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logsManager.SaveLog(message, ex.Message);
-
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Arhives message.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns>
-        /// True if message is successfully arhived.
-        /// </returns>
-        public async Task<bool> ArchiveMessage(Message message)
-        {
-            message.Archived = true;
-
-            try
-            {
-                await _db.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logsManager.SaveLog(message, ex.Message);
-
-                return false;
-            }
-
-            return true;
-        }
-
     }
 }

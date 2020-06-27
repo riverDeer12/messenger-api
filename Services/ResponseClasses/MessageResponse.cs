@@ -12,6 +12,7 @@ namespace MessengerAPI.Services.HelperClasses
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
         public MessageDetailsDto  Message { get; set; }
+        public List<Message>  Messages { get; set; }
 
         internal static MessageResponse Unsuccessful(string messages)
         {
@@ -28,6 +29,15 @@ namespace MessengerAPI.Services.HelperClasses
             {
                 Success = true,
                 Message = message
+            };
+        }
+
+        internal static MessageResponse Successfull(List<Message> messages)
+        {
+            return new MessageResponse()
+            {
+                Success = true,
+                Messages = messages
             };
         }
     }

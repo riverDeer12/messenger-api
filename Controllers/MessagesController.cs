@@ -44,9 +44,9 @@ namespace MessengerAPI.Controllers
 
             if (string.IsNullOrEmpty(userId)) return BadRequest();
 
-            var messages = await _messagesManager.GetUserMessages(userId);
+            var response = await _messagesManager.GetUserMessages(userId);
 
-            return Ok(messages);
+            return Ok(response.Messages);
         }
 
         /// <summary>
@@ -60,26 +60,26 @@ namespace MessengerAPI.Controllers
         [Route("GetChatMessages/{id}")]
         public async Task<IActionResult> GetChatMessages(Guid chatId)
         {
-            var messages = await _messagesManager.GetMessagesByChatId(chatId);
+            var response = await _messagesManager.GetChatMessages(chatId);
 
-            return Ok(messages);
+            return Ok(response.Messages);
         }
 
         /// <summary>
-        /// Process message to
-        /// existing chat.
+        /// Process new message 
+        /// to existing chat.
         /// </summary>
         /// <param name="messageData"></param>
         /// <returns></returns>
         [HttpPost]
-        [Route("ProcessChatMessage")]
-        public async Task<IActionResult> ProcessChatMessage(PostMessageToChatDto messageData)
+        [Route("SendChatMessage")]
+        public async Task<IActionResult> SendChatMessage(PostMessageToChatDto messageData)
         {
             var response = await _messagesManager.ProcessChatMessage(messageData);
 
             if (!response.Success) return BadRequest(response.ErrorMessage);
 
-            await _hub.Clients.All.SendAsync("SendMessage", response.Message);
+            await _hub.Clients.All.SendAsync("sendmessage", response.Message);
 
             return Ok();
         }
@@ -91,8 +91,8 @@ namespace MessengerAPI.Controllers
         /// <param name="messageData"></param>
         /// <returns></returns>
         [HttpPost]
-        [Route("ProcessNewMessage")]
-        public async Task<IActionResult> ProcessNewMessage(PostNewMessageDto messageData)
+        [Route("SendNewChatMessage")]
+        public async Task<IActionResult> SendNewChatMessage(PostNewMessageDto messageData)
         {
             var chatOwnerId = User.FindFirst("UserId")?.Value;
 
@@ -102,7 +102,7 @@ namespace MessengerAPI.Controllers
 
             if (!response.Success) return BadRequest(response.ErrorMessage);
 
-            await _hub.Clients.All.SendAsync("MessageReceived", response.Message);
+            await _hub.Clients.All.SendAsync("receivemessages", response.Message);
 
             return Ok();
         }

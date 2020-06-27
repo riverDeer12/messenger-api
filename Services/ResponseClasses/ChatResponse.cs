@@ -10,6 +10,7 @@ namespace MessengerAPI.Services.HelperClasses
     {
         public bool Success { get; set; }
         public Chat Chat { get; set; }
+        public List<Chat> Chats { get; set; }
         public string ErrorMessage { get; set; }
 
         internal static ChatResponse Unsuccessful(string messages)
@@ -27,6 +28,15 @@ namespace MessengerAPI.Services.HelperClasses
             {
                 Success = true,
                 Chat = chat
+            };
+        }
+
+        internal static ChatResponse Successfull(List<Chat> chats)
+        {
+            return new ChatResponse()
+            {
+                Success = true,
+                Chats = chats
             };
         }
     }

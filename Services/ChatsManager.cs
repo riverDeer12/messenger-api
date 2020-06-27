@@ -4,6 +4,7 @@ using MessengerAPI.Data.DataTransferObjects.Chats;
 using MessengerAPI.Data.DataTransferObjects.Messages;
 using MessengerAPI.Data.Models;
 using MessengerAPI.Helpers;
+using MessengerAPI.Repositories;
 using MessengerAPI.Services.HelperClasses;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,32 +18,17 @@ namespace MessengerAPI.Services
 {
     public class ChatsManager
     {
-        private readonly Model _db;
         private readonly IMapper _mapper;
         private readonly ApplicationUsersManager _usersManager;
-        private readonly LogsManager _logsManager;
+        private readonly ChatsRepository _repository;
 
         public ChatsManager(Model context, IMapper mapper, 
             UserManager<ApplicationUser> userManager, 
             IOptions<ApplicationSettings> appSettings)
         {
-            _db = context;
             _mapper = mapper;
+            _repository = new ChatsRepository(context);
             _usersManager = new ApplicationUsersManager(context, mapper, userManager, appSettings);
-            _logsManager = new LogsManager(context);
-        }
-
-        /// <summary>
-        /// Get all active chats
-        /// for logged user.
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        public async Task<ICollection<Chat>> GetUserChatsById(string userId)
-        {
-            var chats = await GetActiveChats(userId);
-
-            return chats;
         }
 
         /// <summary>
@@ -50,47 +36,63 @@ namespace MessengerAPI.Services
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        private async Task<ICollection<Chat>> GetActiveChats(string userId)
+        public async Task<ChatResponse> GetActiveChats(string userId)
         {
             var chats = new List<Chat>();
 
-            var userChats = await GetAllChatsForUser(userId);
+            var userChats = await _repository.GetActiveChatsByUserId(userId);
 
             foreach (var userChat in userChats)
             {
-                var chat = await FindChatById(userChat.ChatId);
+                var chat = await _repository.FindChatById(userChat.ChatId);
 
-                if (chat == null) continue;
+                if (chat == null) 
+                    return ChatResponse.Unsuccessful("Error finding chat.");
 
                 chats.Add(chat);
             }
 
-            return chats;
+            return ChatResponse.Successfull(chats);
         }
 
         /// <summary>
-        /// Find chat by chat id 
-        /// parameter.
+        /// Get chat by
+        /// sent chatId.
         /// </summary>
         /// <param name="chatId"></param>
         /// <returns></returns>
-        private async Task<Chat> FindChatById(Guid chatId)
+        public async Task<ChatResponse> GetChat(Guid chatId)
         {
-           return await _db.Chats
-                .FirstOrDefaultAsync(x => x.ChatId == chatId);
+            var response = await _repository.FindChatByChatId(chatId);
+
+            if (!response.Success) return ChatResponse.Unsuccessful(response.ErrorMessage);
+
+            return ChatResponse.Successfull(response.Chat);
         }
 
         /// <summary>
-        /// Get all chats that
-        /// user was or is in.
+        /// Get archived chats
+        /// for logged user.
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        private async Task<List<ApplicationUserChat>> GetAllChatsForUser(string userId)
+        public async Task<ChatResponse> GetArchivedChats(string userId)
         {
-            return await _db.UserChats
-                .Where(x => x.UserId == userId && x.Archived == false)
-                .ToListAsync();
+            var chats = new List<Chat>();
+
+            var userChats = await _repository.GetArchivedChatsByUserId(userId);
+
+            foreach (var userChat in userChats)
+            {
+                var chat = await _repository.FindChatById(userChat.ChatId);
+
+                if (chat == null)
+                    return ChatResponse.Unsuccessful("Error finding chat.");
+
+                chats.Add(chat);
+            }
+
+            return ChatResponse.Successfull(chats);
         }
 
         /// <summary>
@@ -108,7 +110,7 @@ namespace MessengerAPI.Services
 
             chat.ApplicationUserChats = SetChatUsers(chat, users);
 
-            var success = await SaveChat(chat);
+            var success = await _repository.SaveChat(chat);
 
             if (!success) return ChatResponse.Unsuccessful("Error saving chat.");
 
@@ -166,31 +168,6 @@ namespace MessengerAPI.Services
             chatUsers.Add(chatOwner);
 
             return chatUsers;
-        }
-
-        /// <summary>
-        /// Save new chat to database.
-        /// </summary>
-        /// <param name="messageData"></param>
-        /// <returns>
-        /// True if successfully saved.
-        /// </returns>
-        private async Task<bool> SaveChat(Chat chat)
-        {
-            _db.Chats.Add(chat);
-
-            try
-            {
-                await _db.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logsManager.SaveLog(chat, ex.Message);
-
-                return false;
-            }
-
-            return true;
         }
     }
 }
