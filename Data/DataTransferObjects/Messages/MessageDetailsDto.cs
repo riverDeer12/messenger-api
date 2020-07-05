@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using MessengerAPI.Data.Models;
+using System;
 
 namespace MessengerAPI.Data.DataTransferObjects.Messages
 {
@@ -11,6 +9,13 @@ namespace MessengerAPI.Data.DataTransferObjects.Messages
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public string UserId { get; set; }
+        public string ApplicationUser { get; set; }
+        public MessageType MessageType { get; set; }
+    }
+
+    public enum MessageType
+    {
+        Sent = 0,
+        Received = 1
     }
 }

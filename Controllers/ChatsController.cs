@@ -40,14 +40,16 @@ namespace MessengerAPI.Controllers
         /// <param name="chatId"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("GetChat")]
-        public async Task<IActionResult> GetChat(Guid chatId)
+        [Route("GetChat/{chatId}")]
+        public async Task<IActionResult> GetChat([FromRoute] string chatId)
         {
-            var response = await _chatsManager.GetChat(chatId);
+            var realChatId = Guid.Parse(chatId);
+
+            var response = await _chatsManager.GetChat(realChatId);
 
             if (!response.Success) return BadRequest(response.ErrorMessage);
 
-            return Ok(response.Chat);
+            return Ok(response.ChatDetails);
         }
 
         /// <summary>
@@ -88,6 +90,52 @@ namespace MessengerAPI.Controllers
             if (!response.Success) return BadRequest(response.ErrorMessage);
 
             return Ok(response.Chats);
+        }
+
+        /// <summary>
+        /// Join user to chat.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("JoinChat/{connectionId}/{chatId}")]
+        public async Task<IActionResult> JoinChat([FromRoute] string connectionId, [FromRoute] string chatId)
+        {
+            var userId = User.FindFirst("UserId")?.Value;
+
+            if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
+
+            var response = await _chatsManager.JoinUserToChat(chatId, userId);
+
+            if (!response.Success) return BadRequest(response.ErrorMessage);
+
+            await _hub.Groups.AddToGroupAsync(connectionId, chatId);
+
+            await _hub.Clients.Group(chatId).SendAsync(userId + " has entered the chat.");
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Remove user from chat.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("LeaveChat/{connectionId}/{chatId}")]
+        public async Task<IActionResult> LeaveChat([FromRoute] string connectionId, [FromRoute] string chatId)
+        {
+            var userId = User.FindFirst("UserId")?.Value;
+
+            if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
+
+            var response = await _chatsManager.RemoveUserFromChat(chatId, userId);
+
+            if (!response.Success) return BadRequest(response.ErrorMessage);
+
+            await _hub.Groups.RemoveFromGroupAsync(connectionId, chatId);
+
+            await _hub.Clients.Group(chatId).SendAsync(userId + " has left the chat.");
+
+            return Ok();
         }
     }
 }

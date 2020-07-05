@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MessengerAPI.Data;
+using MessengerAPI.Data.DataTransferObjects.ApplicationUsers;
 using MessengerAPI.Data.DataTransferObjects.Chats;
 using MessengerAPI.Data.DataTransferObjects.Messages;
 using MessengerAPI.Data.Models;
@@ -7,11 +8,9 @@ using MessengerAPI.Helpers;
 using MessengerAPI.Repositories;
 using MessengerAPI.Services.HelperClasses;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MessengerAPI.Services
@@ -67,7 +66,54 @@ namespace MessengerAPI.Services
 
             if (!response.Success) return ChatResponse.Unsuccessful(response.ErrorMessage);
 
-            return ChatResponse.Successfull(response.Chat);
+            var chatDetails = _mapper.Map<ChatDetailsDto>(response.Chat);
+
+            var chatUsers = _repository.GetChatUsers(response.Chat.ApplicationUserChats);
+
+            var users = _mapper.Map<List<UserDetailsDto>>(chatUsers);
+
+            chatDetails.Users = users;
+
+            return ChatResponse.Successfull(chatDetails);
+        }
+
+        /// <summary>
+        /// Update last activity
+        /// for chat after new 
+        /// received message.
+        /// </summary>
+        /// <param name="chatId"></param>
+        /// <returns></returns>
+        public async Task<ChatResponse> RefreshChatActivity(Guid chatId)
+        {
+            var chat = await _repository.FindChatById(chatId);
+
+            if (chat == null) return ChatResponse.Unsuccessful("Chat not found.");
+
+            chat.LastActivityAt = DateTime.Now;
+
+            var success = await _repository.UpdateChat(chat);
+
+            if(!success) return ChatResponse.Unsuccessful("Error updating chat.");
+
+            return ChatResponse.Successfull();
+        }
+
+        public async Task<ChatResponse> JoinUserToChat(string chatId, string userId)
+        {
+            var realChatId = Guid.Parse(chatId);
+
+            var userChat = new ApplicationUserChat
+            {
+                ChatId = realChatId,
+                UserId = userId
+            };
+
+            var success = await _repository.SaveUserChat(userChat);
+
+            if (!success) return ChatResponse.Unsuccessful("Error saving userchat relation.");
+
+            return ChatResponse.Successfull();
         }
 
         /// <summary>
@@ -93,6 +139,30 @@ namespace MessengerAPI.Services
             }
 
             return ChatResponse.Successfull(chats);
+        }
+
+        /// <summary>
+        /// Remove user from 
+        /// related chat.
+        /// </summary>
+        /// <param name="chatId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<ChatResponse> RemoveUserFromChat(string chatId, string userId)
+        {
+            var realChatId = Guid.Parse(chatId);
+
+            var userChat = new ApplicationUserChat
+            {
+                ChatId = realChatId,
+                UserId = userId
+            };
+
+            var success = await _repository.DeleteUserChat(userChat);
+
+            if (!success) return ChatResponse.Unsuccessful("Error removing userchat relation.");
+
+            return ChatResponse.Successfull();
         }
 
         /// <summary>

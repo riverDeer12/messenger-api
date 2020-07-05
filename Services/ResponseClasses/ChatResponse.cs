@@ -1,4 +1,5 @@
-﻿using MessengerAPI.Data.Models;
+﻿using MessengerAPI.Data.DataTransferObjects.Chats;
+using MessengerAPI.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace MessengerAPI.Services.HelperClasses
         public bool Success { get; set; }
         public Chat Chat { get; set; }
         public List<Chat> Chats { get; set; }
+        public ChatDetailsDto ChatDetails{get; set;}
         public string ErrorMessage { get; set; }
 
         internal static ChatResponse Unsuccessful(string messages)
@@ -19,6 +21,14 @@ namespace MessengerAPI.Services.HelperClasses
             {
                 Success = false,
                 ErrorMessage = messages
+            };
+        }
+
+        internal static ChatResponse Successfull()
+        {
+            return new ChatResponse()
+            {
+                Success = true
             };
         }
 
@@ -37,6 +47,15 @@ namespace MessengerAPI.Services.HelperClasses
             {
                 Success = true,
                 Chats = chats
+            };
+        }
+
+        internal static ChatResponse Successfull(ChatDetailsDto chatDetails)
+        {
+            return new ChatResponse()
+            {
+                Success = true,
+                ChatDetails = chatDetails
             };
         }
     }

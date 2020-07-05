@@ -1,4 +1,5 @@
 ﻿using MessengerAPI.Data;
+using MessengerAPI.Data.DataTransferObjects.ApplicationUsers;
 using MessengerAPI.Data.Models;
 using MessengerAPI.Services;
 using MessengerAPI.Services.HelperClasses;
@@ -31,6 +32,31 @@ namespace MessengerAPI.Repositories
         public async Task<bool> SaveChat(Chat chat)
         {
             _db.Chats.Add(chat);
+
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logsManager.SaveLog(chat, ex.Message);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Save new chat to database.
+        /// </summary>
+        /// <param name="messageData"></param>
+        /// <returns>
+        /// True if successfully saved.
+        /// </returns>
+        public async Task<bool> UpdateChat(Chat chat)
+        {
+            _db.Chats.Update(chat);
 
             try
             {
@@ -93,12 +119,71 @@ namespace MessengerAPI.Repositories
         public async Task<ChatResponse> FindChatByChatId(Guid chatId)
         {
             var chat = await _db.Chats
-                .Include("Messages")
+                .Include(x => x.Messages).ThenInclude(x => x.ApplicationUser)
+                .Include(x => x.ApplicationUserChats)
                 .FirstOrDefaultAsync(x => x.ChatId == chatId);
 
-            if (chatId == null) return ChatResponse.Unsuccessful("Chat not found.");
+            if (chat == null) return ChatResponse.Unsuccessful("Chat not found.");
 
             return ChatResponse.Successfull(chat);
+        }
+
+        public async Task<bool> SaveUserChat(ApplicationUserChat userChat)
+        {
+            _db.UserChats.Add(userChat);
+
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logsManager.SaveLog(userChat, ex.Message);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Get chat users from
+        /// relation between user and chat.
+        /// </summary>
+        /// <param name="userChats"></param>
+        /// <returns></returns>
+        public List<ApplicationUser> GetChatUsers(ICollection<ApplicationUserChat> userChats)
+        {
+            var users = new List<ApplicationUser>();
+
+            foreach(var userChat in userChats)
+            {
+                var user = _db.ApplicationUsers.FirstOrDefault(x => x.Id == userChat.UserId);
+
+                if (user == null) continue;
+
+                users.Add(user);
+            }
+
+            return users;
+        }
+
+        public async Task<bool> DeleteUserChat(ApplicationUserChat userChat)
+        {
+            _db.UserChats.Remove(userChat);
+
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logsManager.SaveLog(userChat, ex.Message);
+
+                return false;
+            }
+
+            return true;
         }
     }
 }

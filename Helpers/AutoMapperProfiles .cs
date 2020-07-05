@@ -3,6 +3,7 @@ using MessengerAPI.Data.DataTransferObjects.ApplicationUsers;
 using MessengerAPI.Data.DataTransferObjects.Chats;
 using MessengerAPI.Data.DataTransferObjects.Messages;
 using MessengerAPI.Data.Models;
+using System.Collections.Generic;
 
 namespace MessengerAPI.Helpers
 {
@@ -16,9 +17,11 @@ namespace MessengerAPI.Helpers
 
             //-- chat profiles --//
             CreateMap<NewChatDto, Chat>();
+            CreateMap<Chat, ChatDetailsDto>();
 
             //-- mesage profiles --//
             CreateMap<PostNewMessageDto, Message>();
+            CreateMap<PostMessageToChatDto, Message>();
             CreateMap<Message, MessageDetailsDto>();
         }
         

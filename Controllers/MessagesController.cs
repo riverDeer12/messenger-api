@@ -75,13 +75,19 @@ namespace MessengerAPI.Controllers
         [Route("SendChatMessage")]
         public async Task<IActionResult> SendChatMessage(PostMessageToChatDto messageData)
         {
+            var userId = User.FindFirst("UserId")?.Value;
+
+            if (string.IsNullOrEmpty(userId)) return BadRequest();
+
+            messageData.UserId = userId;
+
             var response = await _messagesManager.ProcessChatMessage(messageData);
 
             if (!response.Success) return BadRequest(response.ErrorMessage);
 
-            await _hub.Clients.All.SendAsync("sendmessage", response.Message);
+            await _hub.Clients.All.SendAsync("receivemessage", response.Message);
 
-            return Ok();
+            return Ok(response.Message);
         }
 
         /// <summary>
@@ -101,8 +107,6 @@ namespace MessengerAPI.Controllers
             var response = await _messagesManager.ProcessNewMessage(messageData, chatOwner);
 
             if (!response.Success) return BadRequest(response.ErrorMessage);
-
-            await _hub.Clients.All.SendAsync("receivemessages", response.Message);
 
             return Ok();
         }

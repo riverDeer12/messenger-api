@@ -20,6 +20,7 @@ namespace MessengerAPI.Services
         private readonly IMapper _mapper;
         private readonly ChatsManager _chatsManager;
         private readonly MessagesRepository _repository;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public MessagesManager(Model context, 
             IMapper mapper,
@@ -27,6 +28,7 @@ namespace MessengerAPI.Services
             IOptions<ApplicationSettings> appSettings)
         {
             _mapper = mapper;
+            _userManager = userManager;
             _repository = new MessagesRepository(context);
             _chatsManager = new ChatsManager(context, mapper, userManager, appSettings);
         }
@@ -47,16 +49,27 @@ namespace MessengerAPI.Services
         /// <summary>
         /// Process message
         /// to existing chat.
+        /// 
         /// </summary>
         /// <param name="messageData"></param>
         /// <returns></returns>
         public async Task<MessageResponse> ProcessChatMessage(PostMessageToChatDto messageData)
         {
+            var messageOwner = await _userManager.FindByIdAsync(messageData.UserId);
+
+            if(messageOwner == null) return MessageResponse.Unsuccessful("Error finding message owner.");
+
+            messageData.ApplicationUser = messageOwner;
+
             var message = _mapper.Map<Message>(messageData);
 
             var messageSaved = await _repository.SaveMessage(message);
 
             if (!messageSaved) return MessageResponse.Unsuccessful("Error in saving message.");
+
+            var chatResponse = await _chatsManager.RefreshChatActivity(messageData.ChatId);
+
+            if (!chatResponse.Success) return MessageResponse.Unsuccessful(chatResponse.ErrorMessage);
 
             var messageDetailsDto = _mapper.Map<MessageDetailsDto>(message);
 
