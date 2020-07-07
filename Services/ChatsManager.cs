@@ -109,6 +109,10 @@ namespace MessengerAPI.Services
                 UserId = userId
             };
 
+            var alreadyJoined = _repository.CheckUserChatExistance(userChat);
+
+            if(alreadyJoined) return ChatResponse.Successfull();
+
             var success = await _repository.SaveUserChat(userChat);
 
             if (!success) return ChatResponse.Unsuccessful("Error saving userchat relation.");

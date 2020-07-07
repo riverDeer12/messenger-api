@@ -128,6 +128,25 @@ namespace MessengerAPI.Repositories
             return ChatResponse.Successfull(chat);
         }
 
+        /// <summary>
+        /// Checks if user is 
+        /// already joined to chat.
+        /// </summary>
+        /// <param name="userChat"></param>
+        /// <returns></returns>
+        public bool CheckUserChatExistance(ApplicationUserChat userChat)
+        {
+            return _db.UserChats
+                .FirstOrDefault(x => x.ChatId == userChat.ChatId &&
+                x.UserId == userChat.UserId) != null;
+        }
+
+        /// <summary>
+        /// Save user-chat
+        /// relation to db.
+        /// </summary>
+        /// <param name="userChat"></param>
+        /// <returns></returns>
         public async Task<bool> SaveUserChat(ApplicationUserChat userChat)
         {
             _db.UserChats.Add(userChat);
@@ -168,6 +187,12 @@ namespace MessengerAPI.Repositories
             return users;
         }
 
+        /// <summary>
+        /// Delete user-chat relation
+        /// from db.
+        /// </summary>
+        /// <param name="userChat"></param>
+        /// <returns></returns>
         public async Task<bool> DeleteUserChat(ApplicationUserChat userChat)
         {
             _db.UserChats.Remove(userChat);

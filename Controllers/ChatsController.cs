@@ -20,12 +20,12 @@ namespace MessengerAPI.Controllers
     [Authorize]
     public class ChatsController : ControllerBase
     {
-        private readonly IHubContext<ChatHub> _hub;
+        private readonly IHubContext<MessageHub> _hub;
         private readonly ChatsManager _chatsManager;
 
         public ChatsController(Model context, 
             IMapper mapper, 
-            IHubContext<ChatHub> hub,
+            IHubContext<MessageHub> hub,
             UserManager<ApplicationUser> userManager,
             IOptions<ApplicationSettings> appSettings)
         {
@@ -110,9 +110,17 @@ namespace MessengerAPI.Controllers
 
             await _hub.Groups.AddToGroupAsync(connectionId, chatId);
 
-            await _hub.Clients.Group(chatId).SendAsync(userId + " has entered the chat.");
+            await _hub.Clients.Group(chatId).SendAsync("receivemessage", 
+                new Message 
+                {
+                    MessageId = Guid.NewGuid(),
+                    Content = userId + " has joined a chat",
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    Archived = false
+                });
 
-            return Ok();
+            return Ok(response);
         }
 
         /// <summary>

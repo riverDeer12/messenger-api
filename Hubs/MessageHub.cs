@@ -11,12 +11,14 @@ namespace MessengerAPI.Hubs
     {
         public Task SendPublicMessage(Message message)
         {
-            return Clients.All.SendAsync("receivemessage", message);
+            return Clients.All.SendAsync("receiveMessage", message);
         }
 
         public async Task SendMessageToChat(Message message, string chatname)
         {
-            await Clients.Group(chatname).SendAsync("receivemessage", message);
+            await Clients.Group(chatname).SendAsync("receiveMessage", message);
         }
+
+        public string GetConnectionId() => Context.ConnectionId;
     }
 }

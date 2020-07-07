@@ -14,6 +14,7 @@ namespace MessengerAPI.Services.HelperClasses
         public List<Chat> Chats { get; set; }
         public ChatDetailsDto ChatDetails{get; set;}
         public string ErrorMessage { get; set; }
+        public string SuccessMessage { get; set; }
 
         internal static ChatResponse Unsuccessful(string messages)
         {
