@@ -6,6 +6,7 @@ using MessengerAPI.Data.DataTransferObjects.Messages;
 using MessengerAPI.Data.Models;
 using MessengerAPI.Helpers;
 using MessengerAPI.Services.HelperClasses;
+using MessengerAPI.Services.ResponseClasses;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -110,6 +111,41 @@ namespace MessengerAPI.Services
         }
 
         /// <summary>
+        /// Get all active users
+        /// excluding logged user.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<UserResponse> GetSearchUsers(string userId)
+        {
+            var loggedUser = await _userManager.FindByIdAsync(userId);
+
+            if (loggedUser == null) return UserResponse.Unsuccessful("Logged user not found.");
+
+            var activeUsers = await GetSearchActiveUsers(loggedUser);
+
+            return UserResponse.Successful(activeUsers);
+        }
+
+        /// <summary>
+        /// Get all active users
+        /// for search with excluded
+        /// currently logged user.
+        /// </summary>
+        /// <param name="loggedUser"></param>
+        /// <returns></returns>
+        private async Task<List<UserDetailsDto>> GetSearchActiveUsers(ApplicationUser loggedUser)
+        {
+            var activeUsers = await _db.ApplicationUsers.Where(x => x.Active).ToListAsync();
+
+            if (activeUsers.Contains(loggedUser)) activeUsers.Remove(loggedUser);
+
+            var userDetailsList = _mapper.Map<List<UserDetailsDto>>(activeUsers);
+
+            return userDetailsList;
+        }
+
+        /// <summary>
         /// Get user details by
         /// claims principal.
         /// </summary>
@@ -123,7 +159,6 @@ namespace MessengerAPI.Services
 
             return userDetails;
         }
-
 
         /// <summary>
         /// Find user by sent id.

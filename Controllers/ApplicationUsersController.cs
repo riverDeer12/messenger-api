@@ -7,6 +7,7 @@ using MessengerAPI.Data.DataTransferObjects.ApplicationUsers;
 using MessengerAPI.Data.Models;
 using MessengerAPI.Helpers;
 using MessengerAPI.Services;
+using MessengerAPI.Services.ResponseClasses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -81,6 +82,27 @@ namespace MessengerAPI.Controllers
             if (userDetails == null) return BadRequest();
 
             return Ok(userDetails);
+        }
+
+
+        /// <summary>
+        /// Get all active 
+        /// users for search.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("GetSearchUsers")]
+        public async Task<IActionResult> GetSearchUsers()
+        {
+            var userId = User.FindFirst("UserId")?.Value;
+
+            if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
+
+            var response = await _usersManager.GetSearchUsers(userId);
+
+            if (!response.Success) return BadRequest(response.ErrorMessage);
+
+            return Ok(response.Users);
         }
 
     }

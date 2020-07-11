@@ -73,6 +73,8 @@ namespace MessengerAPI.Services
 
             var messageDetailsDto = _mapper.Map<MessageDetailsDto>(message);
 
+            messageDetailsDto.ApplicationUser = messageOwner.UserName;
+
             return MessageResponse.Successfull(messageDetailsDto);
         }
 

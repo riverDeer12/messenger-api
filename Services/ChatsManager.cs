@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MessengerAPI.Services
@@ -51,7 +52,11 @@ namespace MessengerAPI.Services
                 chats.Add(chat);
             }
 
-            return ChatResponse.Successfull(chats);
+            var sortedChats = chats
+                .OrderByDescending(x => x.LastActivityAt)
+                .ToList();
+
+            return ChatResponse.Successfull(sortedChats);
         }
 
         /// <summary>
@@ -228,7 +233,11 @@ namespace MessengerAPI.Services
         {
             var chatUsers = new List<ApplicationUser>();
 
-            foreach(var receiverId in messageData.ReceiverIds)
+            var chatOwner = await _usersManager.FindUserById(messageData.UserId);
+
+            chatUsers.Add(chatOwner);
+
+            foreach (var receiverId in messageData.ReceiverIds)
             {
                 var receiver = await _usersManager.FindUserById(receiverId);
 
@@ -236,10 +245,6 @@ namespace MessengerAPI.Services
 
                 chatUsers.Add(receiver);
             }
-
-            var chatOwner = await _usersManager.FindUserById(messageData.UserId);
-
-            chatUsers.Add(chatOwner);
 
             return chatUsers;
         }

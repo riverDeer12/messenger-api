@@ -85,7 +85,12 @@ namespace MessengerAPI.Controllers
 
             if (!response.Success) return BadRequest(response.ErrorMessage);
 
-            await _hub.Clients.All.SendAsync("receivemessage", response.Message);
+            var groupName = messageData.ChatId.ToString();
+            var senderId = messageData.UserId;
+
+            await _hub.Clients
+                .GroupExcept(groupName, senderId)
+                .SendAsync("receivemessage", response.Message);
 
             return Ok(response.Message);
         }

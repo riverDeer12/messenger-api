@@ -110,17 +110,7 @@ namespace MessengerAPI.Controllers
 
             await _hub.Groups.AddToGroupAsync(connectionId, chatId);
 
-            await _hub.Clients.Group(chatId).SendAsync("receivemessage", 
-                new Message 
-                {
-                    MessageId = Guid.NewGuid(),
-                    Content = userId + " has joined a chat",
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    Archived = false
-                });
-
-            return Ok(response);
+            return Ok();
         }
 
         /// <summary>
@@ -140,8 +130,6 @@ namespace MessengerAPI.Controllers
             if (!response.Success) return BadRequest(response.ErrorMessage);
 
             await _hub.Groups.RemoveFromGroupAsync(connectionId, chatId);
-
-            await _hub.Clients.Group(chatId).SendAsync(userId + " has left the chat.");
 
             return Ok();
         }
