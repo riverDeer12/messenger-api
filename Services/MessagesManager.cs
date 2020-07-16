@@ -84,34 +84,5 @@ namespace MessengerAPI.Services
 
             return MessageResponse.Successfull(messages);
         }
-
-        /// <summary>
-        /// Process new message.
-        /// 1. Create new chat with message.
-        /// 2. Send message.
-        /// </summary>
-        /// <param name="messageData"></param>
-        /// <param name="chatOwner"></param>
-        /// <returns></returns>
-        public async Task<MessageResponse> ProcessNewMessage(PostNewMessageDto messageData, ApplicationUser chatOwner)
-        {
-            var chatResponse = await _chatsManager.ProcessNewChat(messageData);
-
-            if (!chatResponse.Success) return MessageResponse.Unsuccessful("Error creating chat.");
-
-            var message = _mapper.Map<Message>(messageData);
-
-            message.Chat = chatResponse.Chat;
-
-            message.ApplicationUser = chatOwner;
-
-            var messageSaved = await _repository.SaveMessage(message);
-
-            if (!messageSaved) return MessageResponse.Unsuccessful("Error in saving message.");
-
-            var messageDetailsDto = _mapper.Map<MessageDetailsDto>(message);
-
-            return MessageResponse.Successfull(messageDetailsDto);
-        }
     }
 }

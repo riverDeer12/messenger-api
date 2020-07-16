@@ -94,26 +94,5 @@ namespace MessengerAPI.Controllers
 
             return Ok(response.Message);
         }
-
-        /// <summary>
-        /// Process new message
-        /// to new chat.
-        /// </summary>
-        /// <param name="messageData"></param>
-        /// <returns></returns>
-        [HttpPost]
-        [Route("SendNewChatMessage")]
-        public async Task<IActionResult> SendNewChatMessage(PostNewMessageDto messageData)
-        {
-            var chatOwnerId = User.FindFirst("UserId")?.Value;
-
-            var chatOwner = await _userManager.FindByIdAsync(chatOwnerId);
-
-            var response = await _messagesManager.ProcessNewMessage(messageData, chatOwner);
-
-            if (!response.Success) return BadRequest(response.ErrorMessage);
-
-            return Ok();
-        }
     }
 }

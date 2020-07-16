@@ -14,6 +14,7 @@ namespace MessengerAPI.Helpers
             //-- application user profiles --//
             CreateMap<RegistrationDto, ApplicationUser>();
             CreateMap<ApplicationUser, UserDetailsDto>();
+            CreateMap<UserDetailsDto, ApplicationUser>();
 
             //-- chat profiles --//
             CreateMap<NewChatDto, Chat>();

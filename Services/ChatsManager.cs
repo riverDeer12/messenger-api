@@ -19,8 +19,9 @@ namespace MessengerAPI.Services
     public class ChatsManager
     {
         private readonly IMapper _mapper;
-        private readonly ApplicationUsersManager _usersManager;
+        private readonly ApplicationUsersManager _appUsersManager;
         private readonly ChatsRepository _repository;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public ChatsManager(Model context, IMapper mapper, 
             UserManager<ApplicationUser> userManager, 
@@ -28,7 +29,8 @@ namespace MessengerAPI.Services
         {
             _mapper = mapper;
             _repository = new ChatsRepository(context);
-            _usersManager = new ApplicationUsersManager(context, mapper, userManager, appSettings);
+            _userManager = userManager;
+            _appUsersManager = new ApplicationUsersManager(context, mapper, userManager, appSettings);
         }
 
         /// <summary>
@@ -64,8 +66,9 @@ namespace MessengerAPI.Services
         /// sent chatId.
         /// </summary>
         /// <param name="chatId"></param>
+        /// <param name="loggedUserId"></param>
         /// <returns></returns>
-        public async Task<ChatResponse> GetChat(Guid chatId)
+        public async Task<ChatResponse> GetChat(Guid chatId, string loggedUserId)
         {
             var response = await _repository.FindChatByChatId(chatId);
 
@@ -74,10 +77,16 @@ namespace MessengerAPI.Services
             var chatDetails = _mapper.Map<ChatDetailsDto>(response.Chat);
 
             var chatUsers = _repository.GetChatUsers(response.Chat.ApplicationUserChats);
+            
+            var loggedUser = await _userManager.FindByIdAsync(loggedUserId);
+
+            chatUsers.Remove(loggedUser);
 
             var users = _mapper.Map<List<UserDetailsDto>>(chatUsers);
 
             chatDetails.Users = users;
+
+            chatDetails.SetChatName();
 
             return ChatResponse.Successfull(chatDetails);
         }
@@ -177,15 +186,15 @@ namespace MessengerAPI.Services
         /// <summary>
         /// Process new chat.
         /// </summary>
-        /// <param name="newMessageData"></param>
+        /// <param name="data"></param>
         /// <returns></returns>
-        public async Task<ChatResponse> ProcessNewChat(PostNewMessageDto newMessageData)
+        public async Task<ChatResponse> ProcessNewChat(NewChatDto data)
         {
-            var users = await GetChatUsers(newMessageData);
+            var users = await GetChatUsers(data.Users, data.AdminId);
 
-            var newChatData = new NewChatDto(users);
+            data.ApplicationUsers = users;
 
-            var chat = _mapper.Map<Chat>(newChatData);
+            var chat = _mapper.Map<Chat>(data);
 
             chat.ApplicationUserChats = SetChatUsers(chat, users);
 
@@ -226,27 +235,27 @@ namespace MessengerAPI.Services
         /// Make list of chat users
         /// for new chat. Contains
         /// all receivers and chat owner.
+        /// Chat owner is always set as
+        /// first element in list.
         /// </summary>
-        /// <param name="messageData"></param>
+        /// <param name="users"></param>
+        /// <param name="adminId"></param>
         /// <returns></returns>
-        public async Task<List<ApplicationUser>> GetChatUsers(PostNewMessageDto messageData)
+        public async Task<List<ApplicationUser>> GetChatUsers(List<UserDetailsDto> users, string adminId)
         {
-            var chatUsers = new List<ApplicationUser>();
+            var finalChatUsers = new List<ApplicationUser>();
 
-            var chatOwner = await _usersManager.FindUserById(messageData.UserId);
+            var admin = await _appUsersManager.FindUserById(adminId);
 
-            chatUsers.Add(chatOwner);
+            finalChatUsers.Add(admin);
 
-            foreach (var receiverId in messageData.ReceiverIds)
+            foreach(var user in users)
             {
-                var receiver = await _usersManager.FindUserById(receiverId);
-
-                if (receiver == null) continue;
-
-                chatUsers.Add(receiver);
+                var chatUser = await _appUsersManager.FindUserById(user.Id);
+                finalChatUsers.Add(chatUser);
             }
 
-            return chatUsers;
+            return finalChatUsers;
         }
     }
 }

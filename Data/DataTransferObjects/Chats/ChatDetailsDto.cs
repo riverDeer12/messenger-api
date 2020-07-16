@@ -15,5 +15,21 @@ namespace MessengerAPI.Data.DataTransferObjects.Chats
         public DateTime LastActivityAt { get; set; }
         public List<UserDetailsDto> Users { get; set; }
         public List<MessageDetailsDto> Messages { get; set; }
+
+        internal void SetChatName()
+        {
+            if (!string.IsNullOrEmpty(Name)) return;
+
+            if(Users.Count == 1)
+            {
+                Name = Users[0].UserName;
+            }
+            else
+            {
+                Name = Users
+                    .Select(x => x.UserName)
+                    .ToString();
+            }
+        }
     }
 }

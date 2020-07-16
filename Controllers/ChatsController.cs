@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MessengerAPI.Data;
+using MessengerAPI.Data.DataTransferObjects.Chats;
 using MessengerAPI.Data.Models;
 using MessengerAPI.Helpers;
 using MessengerAPI.Hubs;
@@ -22,6 +23,7 @@ namespace MessengerAPI.Controllers
     {
         private readonly IHubContext<MessageHub> _hub;
         private readonly ChatsManager _chatsManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public ChatsController(Model context, 
             IMapper mapper, 
@@ -31,6 +33,7 @@ namespace MessengerAPI.Controllers
         {
             _hub = hub;
             _chatsManager = new ChatsManager(context, mapper, userManager, appSettings);
+            _userManager = userManager;
         }
 
         /// <summary>
@@ -43,9 +46,13 @@ namespace MessengerAPI.Controllers
         [Route("GetChat/{chatId}")]
         public async Task<IActionResult> GetChat([FromRoute] string chatId)
         {
+            var userId = User.FindFirst("UserId")?.Value;
+
+            if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
+
             var realChatId = Guid.Parse(chatId);
 
-            var response = await _chatsManager.GetChat(realChatId);
+            var response = await _chatsManager.GetChat(realChatId, userId);
 
             if (!response.Success) return BadRequest(response.ErrorMessage);
 
@@ -132,6 +139,30 @@ namespace MessengerAPI.Controllers
             await _hub.Groups.RemoveFromGroupAsync(connectionId, chatId);
 
             return Ok();
+        }
+
+        /// <summary>
+        /// Create new chat.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("PostNewChat")]
+        public async Task<IActionResult> PostNewChat(NewChatDto data)
+        {
+            var userId = User.FindFirst("UserId")?.Value;
+
+            if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
+
+            data.AdminId = userId;
+
+            var response = await _chatsManager.ProcessNewChat(data);
+
+            if (!response.Success) return BadRequest(response.ErrorMessage);
+
+            var chatId = response.Chat.ChatId.ToString();
+
+            return Ok(new { chatId });
         }
     }
 }
