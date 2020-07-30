@@ -95,7 +95,9 @@ namespace MessengerAPI
             app.UseRouting();
 
             app.UseCors(builder => builder
-                .WithOrigins(Configuration["ApplicationSettings:ClientUrl"])
+                .WithOrigins(
+                Configuration["ApplicationSettings:ClientUrl"], 
+                Configuration["ApplicationSettings:AndroidClientUrl"])
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials());
