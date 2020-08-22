@@ -157,7 +157,33 @@ namespace MessengerAPI.Services
 
             var userDetails = _mapper.Map<UserDetailsDto>(user);
 
+            userDetails.ActiveChats = GetNumberOfActiveChats(userId);
+
+            userDetails.MessagesSent = GetNumberOfSentMessages(userId);
+
             return userDetails;
+        }
+
+        private int GetNumberOfActiveChats(string userId)
+        {
+            var activeChats = _db.UserChats
+                .Where(x => x.UserId == userId && x.Archived != true)
+                .ToList();
+
+            if (!activeChats.Any()) return 0;
+
+            return activeChats.Count();
+        }
+
+        private int GetNumberOfSentMessages(string userId)
+        {
+            var messagesSent = _db.Messages
+                .Where(x => x.ApplicationUser.Id == userId)
+                .ToList();
+
+            if (!messagesSent.Any()) return 0;
+
+            return messagesSent.Count();
         }
 
         /// <summary>

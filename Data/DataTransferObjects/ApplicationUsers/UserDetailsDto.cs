@@ -7,5 +7,7 @@
         public string LastName { get; set; }
         public string Email { get; set; }
         public string UserName { get; set; }
+        public int ActiveChats { get; set; }
+        public int MessagesSent { get; set; }
     }
 }
