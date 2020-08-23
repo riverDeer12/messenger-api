@@ -36,13 +36,13 @@ namespace MessengerAPI.Services
         /// <summary>
         /// Get all active chats for user.
         /// </summary>
-        /// <param name="userId"></param>
+        /// <param name="user"></param>
         /// <returns></returns>
-        public async Task<ChatResponse> GetActiveChats(string userId)
+        public async Task<ChatResponse> GetActiveChats(ApplicationUser user)
         {
             var chats = new List<Chat>();
 
-            var userChats = await _repository.GetActiveChatsByUserId(userId);
+            var userChats = await _repository.GetActiveChatsByUserId(user.Id);
 
             foreach (var userChat in userChats)
             {
@@ -51,14 +51,48 @@ namespace MessengerAPI.Services
                 if (chat == null) 
                     return ChatResponse.Unsuccessful("Error finding chat.");
 
+                chat.Name = await SetChatName(chat, user);
+
                 chats.Add(chat);
             }
 
-            var sortedChats = chats
+            chats = chats
                 .OrderByDescending(x => x.LastActivityAt)
                 .ToList();
 
-            return ChatResponse.Successfull(sortedChats);
+            return ChatResponse.Successfull(chats);
+        }
+
+        /// <summary>
+        /// Handle situation when chat
+        /// name is not specified. Then
+        /// go through users (except request user)
+        /// and get their usernames 
+        /// separated by comma.
+        /// </summary>
+        /// <param name="chat"></param>
+        /// <param name="userToRemove"></param>
+        /// <returns></returns>
+        private async Task<string> SetChatName(Chat chat, ApplicationUser userToRemove)
+        {
+            var chatName = "";
+
+            if (!string.IsNullOrEmpty(chat.Name)) return chat.Name;
+
+            var chatUsers = await _repository.GetActiveUsersByChatId(chat.ChatId);
+
+            var users = _repository.GetChatUsers(chatUsers);
+
+            var index = users.IndexOf(userToRemove);
+
+            users.RemoveAt(index);
+
+            foreach(var user in users)
+            {  
+                chatName += user.UserName + ", ";
+            }
+
+            return chatName.Substring(0, chatName.Length - 2);
         }
 
         /// <summary>
@@ -66,27 +100,25 @@ namespace MessengerAPI.Services
         /// sent chatId.
         /// </summary>
         /// <param name="chatId"></param>
-        /// <param name="loggedUserId"></param>
+        /// <param name="loggedUser"></param>
         /// <returns></returns>
-        public async Task<ChatResponse> GetChat(Guid chatId, string loggedUserId)
+        public async Task<ChatResponse> GetChat(Guid chatId, ApplicationUser loggedUser)
         {
             var response = await _repository.FindChatByChatId(chatId);
 
             if (!response.Success) return ChatResponse.Unsuccessful(response.ErrorMessage);
 
+            response.Chat.Name = await SetChatName(response.Chat, loggedUser);
+
             var chatDetails = _mapper.Map<ChatDetailsDto>(response.Chat);
 
             var chatUsers = _repository.GetChatUsers(response.Chat.ApplicationUserChats);
-            
-            var loggedUser = await _userManager.FindByIdAsync(loggedUserId);
 
             chatUsers.Remove(loggedUser);
 
             var users = _mapper.Map<List<UserDetailsDto>>(chatUsers);
 
             chatDetails.Users = users;
-
-            chatDetails.SetChatName();
 
             return ChatResponse.Successfull(chatDetails);
         }
@@ -113,6 +145,14 @@ namespace MessengerAPI.Services
             return ChatResponse.Successfull();
         }
 
+
+        /// <summary>
+        /// Join user to chat that 
+        /// already exists.
+        /// </summary>
+        /// <param name="chatId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         public async Task<ChatResponse> JoinUserToChat(string chatId, string userId)
         {
             var realChatId = Guid.Parse(chatId);

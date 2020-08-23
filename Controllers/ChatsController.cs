@@ -50,9 +50,11 @@ namespace MessengerAPI.Controllers
 
             if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
 
+            var user = await _userManager.FindByIdAsync(userId);
+
             var realChatId = Guid.Parse(chatId);
 
-            var response = await _chatsManager.GetChat(realChatId, userId);
+            var response = await _chatsManager.GetChat(realChatId, user);
 
             if (!response.Success) return BadRequest(response.ErrorMessage);
 
@@ -72,7 +74,9 @@ namespace MessengerAPI.Controllers
 
             if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
 
-            var response = await _chatsManager.GetActiveChats(userId);
+            var user = await _userManager.FindByIdAsync(userId);
+
+            var response = await _chatsManager.GetActiveChats(user);
 
             if (!response.Success) return BadRequest(response.ErrorMessage);
 

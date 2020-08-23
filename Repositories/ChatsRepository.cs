@@ -86,6 +86,15 @@ namespace MessengerAPI.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<ApplicationUserChat>> GetActiveUsersByChatId(Guid chatId)
+        {
+            return await _db.UserChats
+                .Where(x => x.ChatId == chatId && x.Archived == false)
+                .ToListAsync();
+
+
+        }
+
         /// <summary>
         /// Find chat by chat id 
         /// parameter.
