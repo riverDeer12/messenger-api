@@ -83,6 +83,29 @@ namespace MessengerAPI.Services
         }
 
         /// <summary>
+        /// Update user details
+        /// with profile data.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<UserResponse> UpdateUserDetails(UserDetailsDto data, string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            user.FirstName = data.FirstName;
+            user.LastName = data.LastName;
+            user.UserName = data.UserName;
+            user.Email = data.Email;
+
+            var updateResponse = await _userManager.UpdateAsync(user);
+
+            if (updateResponse.Succeeded) return UserResponse.Successful();
+
+            return UserResponse.Unsuccessful("Error during user profile update.");
+        }
+
+        /// <summary>
         /// Use registration data and
         /// save new user to db.
         /// </summary>

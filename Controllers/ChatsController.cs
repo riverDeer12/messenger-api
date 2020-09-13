@@ -48,7 +48,8 @@ namespace MessengerAPI.Controllers
         {
             var userId = User.FindFirst("UserId")?.Value;
 
-            if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
+            if (string.IsNullOrEmpty(userId)) 
+                return BadRequest("Logged User Not Found.");
 
             var user = await _userManager.FindByIdAsync(userId);
 
@@ -72,7 +73,8 @@ namespace MessengerAPI.Controllers
         {
             var userId = User.FindFirst("UserId")?.Value;
 
-            if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
+            if (string.IsNullOrEmpty(userId)) 
+                return BadRequest("Logged User Not Found.");
 
             var user = await _userManager.FindByIdAsync(userId);
 
@@ -94,7 +96,8 @@ namespace MessengerAPI.Controllers
         {
             var userId = User.FindFirst("UserId")?.Value;
 
-            if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
+            if (string.IsNullOrEmpty(userId)) 
+                return BadRequest("Logged User Not Found.");
 
             var response = await _chatsManager.GetArchivedChats(userId);
 
@@ -113,7 +116,8 @@ namespace MessengerAPI.Controllers
         {
             var userId = User.FindFirst("UserId")?.Value;
 
-            if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
+            if (string.IsNullOrEmpty(userId)) 
+                return BadRequest("Logged User Not Found.");
 
             var response = await _chatsManager.JoinUserToChat(chatId, userId);
 
@@ -134,7 +138,8 @@ namespace MessengerAPI.Controllers
         {
             var userId = User.FindFirst("UserId")?.Value;
 
-            if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
+            if (string.IsNullOrEmpty(userId)) 
+                return BadRequest("Logged User Not Found.");
 
             var response = await _chatsManager.RemoveUserFromChat(chatId, userId);
 
@@ -156,7 +161,8 @@ namespace MessengerAPI.Controllers
         {
             var userId = User.FindFirst("UserId")?.Value;
 
-            if (string.IsNullOrEmpty(userId)) return BadRequest("Logged User Not Found.");
+            if (string.IsNullOrEmpty(userId)) 
+                return BadRequest("Logged User Not Found.");
 
             data.AdminId = userId;
 
@@ -167,6 +173,27 @@ namespace MessengerAPI.Controllers
             var chatId = response.Chat.ChatId.ToString();
 
             return Ok(new { chatId });
+        }
+
+        /// <summary>
+        /// Archive chat for user. 
+        /// </summary>
+        /// <param name="chatId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("ArchiveChat/{chatId}")]
+        public async Task<IActionResult> ArchiveChat(string chatId)
+        {
+            var userId = User.FindFirst("UserId")?.Value;
+
+            if (string.IsNullOrEmpty(userId)) 
+                return BadRequest("Logged User Not Found.");
+
+            var response = await _chatsManager.ArchiveChat(userId, chatId);
+
+            if (!response.Success) return BadRequest(response.ErrorMessage);
+
+            return Ok();
         }
     }
 }

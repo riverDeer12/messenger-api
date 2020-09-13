@@ -175,6 +175,29 @@ namespace MessengerAPI.Services
         }
 
         /// <summary>
+        /// Archive chat for user.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="chatId"></param>
+        /// <returns></returns>
+        public async Task<ChatResponse> ArchiveChat(string userId, string chatId)
+        {
+            var realChatId = Guid.Parse(chatId);
+
+            var relation = await _repository.FindChatUserRelation(userId, realChatId);
+
+            if (relation == null) return ChatResponse.Unsuccessful("Chat not found");
+
+            relation.Archived = true;
+
+            var success = await _repository.UpdateUserChat(relation);
+
+            if (!success) return ChatResponse.Unsuccessful("Error updating user chat relation.");
+
+            return ChatResponse.Successfull();
+        }
+
+        /// <summary>
         /// Get archived chats
         /// for logged user.
         /// </summary>

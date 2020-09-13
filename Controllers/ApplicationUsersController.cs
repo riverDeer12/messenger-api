@@ -84,6 +84,24 @@ namespace MessengerAPI.Controllers
             return Ok(userDetails);
         }
 
+        /// <summary>
+        /// Update users data.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("UpdateUserDetails")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUserDetails(UserDetailsDto data)
+        {
+            var userId = User.FindFirst("UserId")?.Value;
+
+            var response = await _usersManager.UpdateUserDetails(data, userId);
+
+            if (!response.Success) return BadRequest(response.ErrorMessage);
+
+            return Ok();
+        }
 
         /// <summary>
         /// Get all active 

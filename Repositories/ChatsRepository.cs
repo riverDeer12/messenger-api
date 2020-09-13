@@ -219,5 +219,41 @@ namespace MessengerAPI.Repositories
 
             return true;
         }
+
+        /// <summary>
+        /// Update user chat relation.
+        /// </summary>
+        /// <param name="userChat"></param>
+        /// <returns></returns>
+        public async Task<bool> UpdateUserChat(ApplicationUserChat userChat)
+        {
+            _db.Entry(userChat).State = EntityState.Modified;
+
+            try
+            {
+                _db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Find chatId and
+        /// userId chat relation and
+        /// return chat object.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="chatId"></param>
+        /// <returns></returns>
+        public async Task<ApplicationUserChat> FindChatUserRelation(string userId, Guid chatId)
+        {
+            return _db.UserChats
+                .FirstOrDefault(x => x.UserId == userId &&
+                x.ChatId == chatId);
+        }
     }
 }
